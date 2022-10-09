@@ -10,7 +10,8 @@ function App() {
   const [loading, setLoading] = useState(true)
   //_pokemonDataの状態変数を格納
   const [pokemonData, setPokemonData] = useState([]);
-   
+  const [nextURL, setNextURL] = useState("");
+  const [prevURL, setPrevURL] = useState("");
 
 //ブラウザをリロードした時に全部のポケモン情報を取ってくる
 //1回だけ呼び出したいので第2引数は空にする
@@ -23,7 +24,9 @@ useEffect(() => {
      //各ポケモンの詳細なデータを取
      loadPokemon(res.results);
      //console.log(res.results);
-    //console.log(res);
+    console.log(res.next);
+    setNextURL(res.next);
+    setPrevURL(res.prev);
     setLoading(false);
   };
   fetchPokemonData();
@@ -44,7 +47,28 @@ const loadPokemon = async (data) => {
   setPokemonData(_pokemonData);
 };
 
-  console.log(pokemonData);
+  //console.log(pokemonData);
+
+  const handleNextPage = async () => {
+    setLoading(true);
+    let data = await getAllPokemon(nextURL);
+    //console.log(data);
+    await loadPokemon(data.results);
+    setNextURL(data.next);
+    setPrevURL(data.previous);
+    setLoading(false);
+  };
+
+  const handlePrevPage = async () => {
+    if(!prevURL) return;
+
+    setLoading(true);
+    let data = await getAllPokemon(prevURL);
+    await loadPokemon(data.results);
+    setNextURL(data.next);
+    setPrevURL(data.previous);
+    setLoading(false);
+  };
 
   return (
     <>
@@ -59,6 +83,10 @@ const loadPokemon = async (data) => {
                 //プロップス
                 return <Card key={i} pokemon={pokemon} />;
                 })}
+              </div>
+              <div className="btn">
+                <button onClick={handlePrevPage}>前へ</button>
+                <button onClick={handleNextPage}>次へ</button>
               </div>
             </>
           )}
